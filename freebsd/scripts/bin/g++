@@ -1,0 +1,2 @@
+#!/bin/sh
+exec /usr/bin/c++ "$@" -std=gnu++14 -Wno-error -Wno-register -Wno-unknown-warning-option -Wno-deprecated

@@ -1,0 +1,2 @@
+#!/bin/sh
+exec /usr/bin/cc "$@" -Wno-error -Wno-unknown-warning-option -Wno-implicit-function-declaration -Wno-implicit-int

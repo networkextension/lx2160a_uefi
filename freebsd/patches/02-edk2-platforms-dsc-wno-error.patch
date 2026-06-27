@@ -1,0 +1,15 @@
+--- a/edk2-platforms/Platform/SolidRun/LX2160aCex7/LX2160aCex7.dsc
++++ b/edk2-platforms/Platform/SolidRun/LX2160aCex7/LX2160aCex7.dsc
+@@ -77,10 +77,10 @@
+ 
+ !if $(BIFURCATE_PCIE) == TRUE
+ [BuildOptions]
+-  GCC:*_*_*_CC_FLAGS          = -DBIFURCATE_PCIE
++  GCC:*_*_*_CC_FLAGS          = -DBIFURCATE_PCIE -Wno-error
+   GCC:*_*_*_PP_FLAGS          = -DBIFURCATE_PCIE
+   GCC:*_*_*_ASLPP_FLAGS       = -DBIFURCATE_PCIE
+-  GCC:*_*_*_ASLCC_FLAGS       = -DBIFURCATE_PCIE
++  GCC:*_*_*_ASLCC_FLAGS       = -DBIFURCATE_PCIE -Wno-error
+   GCC:*_*_*_VFRPP_FLAGS       = -DBIFURCATE_PCIE
+ !endif
+ 

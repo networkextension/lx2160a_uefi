@@ -1,0 +1,11 @@
+--- a/edk2-platforms/Silicon/NXP/Drivers/FlexSpiDxe/FspiDxe.h
++++ b/edk2-platforms/Silicon/NXP/Drivers/FlexSpiDxe/FspiDxe.h
+@@ -544,7 +544,7 @@
+ ParseRequest(
+   IN      FSPI_MASTER                   *Fspi,
+   IN      EFI_SPI_REQUEST_PACKET        *RequestPacket,
+-  IN OUT  FSPI_REQUEST                  *Request;
++  IN OUT  FSPI_REQUEST                  *Request
+   );
+ 
+ /**
