@@ -81,7 +81,7 @@ bash freebsd/scripts/mkimage.sh        # -> images/lx2160acex7_freebsd_sd.img
 
 | File | What |
 |------|------|
-| `01-edk2-tools_def-clang-gnuld.patch` | `tools_def.template`: drop `-Werror` (clang-19 has new warnings); point CLANG38 AArch64 `DLINK`/`ASLDLINK` at `-fuse-ld=/usr/local/bin/ld.bfd -no-pie`; `-flto -O3` → `-Os` (GNU ld can't do LLVM LTO). |
+| `01-edk2-tools_def-clang-gnuld.patch` | `tools_def.template`: drop `-Werror` (clang-19 has new warnings); point CLANG38 AArch64 `DLINK`/`ASLDLINK` at `-fuse-ld=/usr/local/bin/ld.bfd -no-pie`; `-flto -O3` → `-Os` (GNU ld can't do LLVM LTO); add **`-ftrivial-auto-var-init=zero`** (the boot-crash fix — see [Resolved](#resolved-the-intermittent-early-dxe-crash)). |
 | `02-edk2-platforms-dsc-wno-error.patch` | Platform DSC: append `-Wno-error` to `CC`/`ASLCC` build options. |
 | `03-edk2-platforms-fspidxe-syntax.patch` | `FspiDxe.h`: remove a stray `;` in a prototype that clang rejects (GCC tolerated). |
 | `04-edk2-platforms-fdf-mc-10.39.patch` | *(optional)* bundle MC firmware `10.39.0` instead of `10.28.1`. |
@@ -116,15 +116,25 @@ FIP (BL31+BL33) `@ seek=2048`. Write the whole image to the boot card (`dd if=im
 of=/dev/<sd> bs=512`), or flash regions individually. On a running FreeBSD with an
 eSDHC/SD driver you can `dd` directly to `/dev/mmcsdX`.
 
-## Known issues
+## Resolved: the intermittent early-DXE crash
 
-- **Intermittent early-DXE synchronous exception.** The clang-built UEFI usually boots,
-  but the *same image* occasionally faults in early DXE (`Synchronous Exception at
-  0x…`). BL2/BL31 and SEC/PEI are reliable. Likely a clang-vs-GCC codegen /
-  uninitialized-data difference (the board runs DDR with ECC off). Not yet root-caused;
-  capturing the full exception dump (`ESR`/`FAR` + faulting module) is the next step.
+Early GNU-ld builds booted *once* then hit a `Synchronous Exception` in early DXE at a
+**varying** address — the signature of **reading uninitialized stack memory** (cold-boot
+DRAM is semi-random and the board runs DDR with **ECC off**). clang left a local
+uninitialized where GCC's LTO build didn't. **Fixed** by `-ftrivial-auto-var-init=zero`
+in `CLANG38_AARCH64_CC_FLAGS` (patch `01`), which zero-inits all automatic variables.
+Verified across repeated cold power-cycles. Full investigation in
+[`DEVLOG.md`](DEVLOG.md) §5.
+
+`PcdEmuVariableNvModeEnable|TRUE` (RAM-only UEFI variables, no SPI-NOR writes) was used
+while bisecting and is **not** required by the fix — leave it off to keep persistent
+variables. It stays a handy option if you ever need the SPI-NOR variable path out of the
+picture.
+
+## Notes
+
 - The GNU-ld path means **no LTO**, so modules are a little larger than the upstream
-  GCC+LTO build. The compressed FV still fits comfortably (~79% of FVMAIN_COMPACT).
+  GCC+LTO build. The compressed FV still fits comfortably (~80% of FVMAIN_COMPACT).
 
 ## Credits
 
